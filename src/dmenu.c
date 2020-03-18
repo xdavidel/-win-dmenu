@@ -26,6 +26,10 @@
 // OOM handler for SB
 #define STRETCHY_BUFFER_OUT_OF_MEMORY OOMERR(0)
 
+#ifndef DMENU_REVISION
+#define DMENU_REVISION "2020-03-18"
+#endif
+
 // Libs
 #include <Windows.h>
 #include <assert.h>
@@ -39,10 +43,10 @@
 #include "stretchy_buffer.h"
 
 // Constants
-#define WLINES_WND_CLASS L"wlines_wnd"
-#define WLINES_MARGIN 4
-#define WLINES_FOREGROUND_TIMER 1
-#define WLINES_DRAWTEXT_PARAMS (DT_NOCLIP | DT_NOPREFIX | DT_END_ELLIPSIS)
+#define DMENU_WND_CLASS L"dmenu_wnd"
+#define DMENU_MARGIN 4
+#define DMENU_FOREGROUND_TIMER 1
+#define DMENU_DRAWTEXT_PARAMS (DT_NOCLIP | DT_NOPREFIX | DT_END_ELLIPSIS)
 
 // Globals
 int wnd_width, wnd_height;
@@ -298,7 +302,7 @@ LRESULT CALLBACK wndproc(HWND wnd, UINT msg, WPARAM wparam, LPARAM lparam)
     switch (msg) {
     // Repeating timer to make sure we're the foreground window
     case WM_TIMER:
-        if (wparam == WLINES_FOREGROUND_TIMER && GetForegroundWindow() != wnd)
+        if (wparam == DMENU_FOREGROUND_TIMER && GetForegroundWindow() != wnd)
             exit(1);
 
     // Paint window
@@ -332,20 +336,20 @@ LRESULT CALLBACK wndproc(HWND wnd, UINT msg, WPARAM wparam, LPARAM lparam)
 
         // Text rect
         RECT text_rect = {
-            .left = WLINES_MARGIN,
-            .top = WLINES_MARGIN,
-            .right = wnd_width - WLINES_MARGIN,
+            .left = DMENU_MARGIN,
+            .top = DMENU_MARGIN,
+            .right = wnd_width - DMENU_MARGIN,
             .bottom = wnd_height
         };
 
         // Draw prompt text
         if (prompt_text) {
-            Rectangle(bfhdc, 0, WLINES_MARGIN, prompt_width, font_size + WLINES_MARGIN);
+            Rectangle(bfhdc, 0, DMENU_MARGIN, prompt_width, font_size + DMENU_MARGIN);
             SetTextColor(bfhdc, clr_sel_fg);
-            DrawTextA(bfhdc, prompt_text, -1, &text_rect, WLINES_DRAWTEXT_PARAMS);
+            DrawTextA(bfhdc, prompt_text, -1, &text_rect, DMENU_DRAWTEXT_PARAMS);
         }
 
-        text_rect.top += font_size + WLINES_MARGIN;
+        text_rect.top += font_size + DMENU_MARGIN;
 
         // Draw texts
         SetTextColor(bfhdc, clr_nrm_fg);
@@ -362,7 +366,7 @@ LRESULT CALLBACK wndproc(HWND wnd, UINT msg, WPARAM wparam, LPARAM lparam)
 
                 // Draw this line
                 DrawTextW(bfhdc, menu_entries[search_results[idx]], -1,
-                    &text_rect, WLINES_DRAWTEXT_PARAMS);
+                    &text_rect, DMENU_DRAWTEXT_PARAMS);
                 text_rect.top += font_size;
 
                 // Reset text colors
@@ -415,7 +419,7 @@ int calc_text_width(char* text)
         .right = 1000,
         .bottom = 1000
     };
-    DrawTextA(bogus_dc, text, -1, &r, WLINES_DRAWTEXT_PARAMS | DT_CALCRECT);
+    DrawTextA(bogus_dc, text, -1, &r, DMENU_DRAWTEXT_PARAMS | DT_CALCRECT);
     return r.right;
 }
 
@@ -425,29 +429,29 @@ void create_window(void)
     WNDCLASSEXW wc = { 0 };
     wc.cbSize = sizeof(WNDCLASSEXW);
     wc.lpfnWndProc = wndproc;
-    wc.lpszClassName = WLINES_WND_CLASS;
+    wc.lpszClassName = DMENU_WND_CLASS;
     wc.hCursor = LoadCursor(NULL, IDC_ARROW);
     wc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
     WINERR(RegisterClassExW(&wc));
 
     // Create window
     wnd_width = GetSystemMetrics(SM_CXSCREEN); // Display width
-    wnd_height = font_size * (line_count + 1) + WLINES_MARGIN * 3;
+    wnd_height = font_size * (line_count + 1) + DMENU_MARGIN * 3;
     main_wnd = CreateWindowExW(WS_EX_TOPMOST | WS_EX_TOOLWINDOW,
-        WLINES_WND_CLASS, L"wlines", WS_POPUP,
+        DMENU_WND_CLASS, L"dmenu", WS_POPUP,
         0, 0, wnd_width, wnd_height, 0, 0, 0, 0);
     WINERR(main_wnd);
 
     // Create textbox
-    prompt_width = prompt_text ? calc_text_width(prompt_text) + WLINES_MARGIN * 2 : 0;
+    prompt_width = prompt_text ? calc_text_width(prompt_text) + DMENU_MARGIN * 2 : 0;
     HWND textbox_wnd = CreateWindowExW(0, L"EDIT", L"",
         WS_VISIBLE | WS_CHILD | ES_LEFT | ES_AUTOVSCROLL | ES_AUTOHSCROLL,
-        prompt_width, WLINES_MARGIN, wnd_width, font_size,
+        prompt_width, DMENU_MARGIN, wnd_width, font_size,
         main_wnd, (HMENU)101, 0, 0);
     WINERR(textbox_wnd);
 
     SendMessage(textbox_wnd, WM_SETFONT, (WPARAM)font, MAKELPARAM(1, 0));
-    prev_edit_wndproc = (WNDPROC)SetWindowLongPtr(textbox_wnd, GWL_WNDPROC, (LONG_PTR)&edit_wndproc);
+    prev_edit_wndproc = (WNDPROC)SetWindowLongPtr(textbox_wnd, GWLP_WNDPROC, (LONG_PTR)&edit_wndproc);
 
     // Remove default window styling
     LONG lStyle = GetWindowLong(main_wnd, GWL_STYLE);
@@ -461,7 +465,7 @@ void create_window(void)
     SetFocus(textbox_wnd);
 
     // Start foreground timer
-    SetTimer(main_wnd, WLINES_FOREGROUND_TIMER, 50, 0);
+    SetTimer(main_wnd, DMENU_FOREGROUND_TIMER, 50, 0);
 
     // Event loop
     MSG msg;
@@ -474,7 +478,7 @@ void create_window(void)
 void usage(void)
 {
     fprintf(stderr,
-        "Usage: wlines.exe [-v] [-i] [-l <count>] [-nb <color>] [-nf <color>] [-sb <color>] [-sf <color>] [-fn <font>] [-fs <size>]\n"
+        "Usage: dmenu.exe [-v] [-i] [-l <count>] [-nb <color>] [-nf <color>] [-sb <color>] [-sf <color>] [-fn <font>] [-fs <size>]\n"
         "Options:\n"
         "  -v              Print version information\n"
         "  -i              Case-insensitive filter\n"
@@ -496,7 +500,7 @@ void usage(void)
 
 void version(void)
 {
-    fprintf(stderr, "wlines (" WLINES_REVISION ")\n");
+    fprintf(stderr, "dmenu (" DMENU_REVISION ")\n");
     exit(0);
 }
 
