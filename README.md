@@ -32,6 +32,16 @@ dmenu has been tested and works on unmodified Windows XP (32-bit) and Windows 10
 3. Clone this repo (`git clone https://gitlab.com/xdavidel/win-dmenu.git`)
 4. Run `make` 
 
+### Build with TCC
+
+The Tiny C Compiler can produce smaller size apps and compiles faster most of the time.
+
+1. Download the [Tiny C Compiler](http://download.savannah.gnu.org/releases/tinycc/tcc-0.9.27-win32-bin.zip) and add the [WinApi headers](http://download.savannah.gnu.org/releases/tinycc/winapi-full-for-0.9.27.zip).
+2. Patch `tcc/lib/gdi32.def` to also include `SetDCPenColor` and `SetDCBrushColor`. 
+3. Make sure `tcc.exe` is in your PATH.
+4. Clone this repo (`git clone https://github.com/JerwuQu/wlines.git`)
+5. Run `maketcc.bat` 
+
 ### Credits
 
 * [tcc](https://bellard.org/tcc/) - by [Fabrice Bellard](https://bellard.org/)
@@ -47,4 +57,3 @@ All issues and PRs related to fixing bugs or other strange behavior are welcome.
 ### License
 
 This project is licensed under the GNU General Public License v3.0. See LICENSE for more details.
-
