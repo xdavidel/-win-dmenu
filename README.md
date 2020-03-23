@@ -39,7 +39,7 @@ The Tiny C Compiler can produce smaller size apps and compiles faster most of th
 1. Download the [Tiny C Compiler](http://download.savannah.gnu.org/releases/tinycc/tcc-0.9.27-win32-bin.zip) and add the [WinApi headers](http://download.savannah.gnu.org/releases/tinycc/winapi-full-for-0.9.27.zip).
 2. Patch `tcc/lib/gdi32.def` to also include `SetDCPenColor` and `SetDCBrushColor`. 
 3. Make sure `tcc.exe` is in your PATH.
-4. Clone this repo (`git clone https://github.com/JerwuQu/wlines.git`)
+4. Clone this repo (`git clone https://githlab.com/xdavidel/win-dmenu.git`)
 5. Run `maketcc.bat` 
 
 ### Credits
